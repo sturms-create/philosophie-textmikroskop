@@ -63,7 +63,13 @@ function render(d){
  card("3 · Gedankenschritte",units)+
  card("4 · Beziehungen",d.beziehungen.map(x=>`<div class="item">${esc(x)}</div>`).join(""))+
  card("5 · Argument",arg)+
- card("6 · Einfach gesagt",`<div class="simple">${esc(d.einfach_gesagt)}</div><div class="item example"><b>Beispiel aus dem Alltag:</b><br>${esc(d.alltagsbeispiel)}</div><p><b>Merksatz:</b> ${esc(d.merksatz)}</p>`)+
+ card("6 · Den Gedanken verstehen",`
+ <div class="simple"><b>A · Ganz einfach gesagt</b><br><br>${esc(d.einfach_gesagt)}</div>
+ <div class="item example"><b>B · Stell dir vor …</b><br><br>${esc(d.alltagsbeispiel)}</div>
+ <div class="item"><b>C · Was hat das mit dem Text zu tun?</b>${d.beispiel_zuordnung.map(x=>`<div style="margin-top:10px"><b>${esc(x.im_beispiel)}</b> → <b>${esc(x.im_text)}</b><br>${esc(x.erklaerung)}</div>`).join("")}</div>
+ <div class="item"><b>D · Wo hinkt das Beispiel?</b><br>${esc(d.grenze_des_beispiels)}</div>
+ <div class="item"><b>E · Jetzt noch einmal philosophisch</b><br>${esc(d.philosophisch_genauer)}</div>
+ <p><b>Merksatz:</b> ${esc(d.merksatz)}</p>`)+
  card("7 · Selbst prüfen",qs);
 }
 async function login(){
