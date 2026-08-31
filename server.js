@@ -26,9 +26,11 @@ const schema={type:"object",additionalProperties:false,properties:{
 problem:{type:"string"},begriffe:{type:"array",items:{type:"object",additionalProperties:false,properties:{begriff:{type:"string"},einfache_erklaerung:{type:"string"},funktion_im_text:{type:"string"}},required:["begriff","einfache_erklaerung","funktion_im_text"]}},
 sinneinheiten:{type:"array",items:{type:"object",additionalProperties:false,properties:{funktion:{type:"string"},textaussage:{type:"string"}},required:["funktion","textaussage"]}},
 beziehungen:{type:"array",items:{type:"string"}},argument:{type:"array",items:{type:"object",additionalProperties:false,properties:{typ:{type:"string"},aussage:{type:"string"}},required:["typ","aussage"]}},
-einfach_gesagt:{type:"string"},alltagsbeispiel:{type:"string"},merksatz:{type:"string"},
+einfach_gesagt:{type:"string"},alltagsbeispiel:{type:"string"},
+beispiel_zuordnung:{type:"array",items:{type:"object",additionalProperties:false,properties:{im_beispiel:{type:"string"},im_text:{type:"string"},erklaerung:{type:"string"}},required:["im_beispiel","im_text","erklaerung"]}},
+grenze_des_beispiels:{type:"string"},philosophisch_genauer:{type:"string"},merksatz:{type:"string"},
 fragen:{type:"array",items:{type:"object",additionalProperties:false,properties:{afb:{type:"string",enum:["I","II","III"]},frage:{type:"string"},erwartung:{type:"string"}},required:["afb","frage","erwartung"]}}
-},required:["problem","begriffe","sinneinheiten","beziehungen","argument","einfach_gesagt","alltagsbeispiel","merksatz","fragen"]};
+},required:["problem","begriffe","sinneinheiten","beziehungen","argument","einfach_gesagt","alltagsbeispiel","beispiel_zuordnung","grenze_des_beispiels","philosophisch_genauer","merksatz","fragen"]};
 
 const instructions=`Du bist ein didaktischer Assistent für Philosophieunterricht.
 Analysiere ausschließlich den vorgelegten Text und bleibe textnah.
@@ -38,7 +40,10 @@ Analysiere ausschließlich den vorgelegten Text und bleibe textnah.
 - schwierige Begriffe zuerst in normalen Worten erklären;
 - keine bloße Umformulierung des Originals;
 - ungefähr Niveau Klasse 9/10.
-Das Alltagsbeispiel muss konkret und leicht vorstellbar sein.
+Das Alltagsbeispiel ist didaktisch zentral. Es beginnt gedanklich mit "Stell dir vor ...". Verwende eine konkrete Situation mit handelnden oder erlebenden Personen. Das Beispiel muss die logische Struktur des Gedankens abbilden, nicht nur ein Schlagwort illustrieren.
+"beispiel_zuordnung" erklärt danach in 2 bis 5 Punkten ausdrücklich, was im Beispiel welchem Begriff, Verhältnis oder Gedankenschritt des Textes entspricht.
+"grenze_des_beispiels" erklärt in 1 bis 3 einfachen Sätzen, wo die Analogie nicht mehr trägt oder was der Text genauer meint.
+"philosophisch_genauer" führt in 3 bis 6 verständlichen Sätzen auf Oberstufenniveau zurück zum Originaltext und verwendet die wichtigen Begriffe des Autors.
 Erzeuge genau 6 Fragen: 2 AFB I, 2 AFB II, 2 AFB III.
 AFB III verlangt ein begründetes philosophisches Urteil, einen Vergleich oder eine Problematisierung, nicht bloß persönliche Meinung.
 "erwartung" beschreibt knapp Kriterien einer guten Antwort.
