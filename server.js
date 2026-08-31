@@ -50,12 +50,21 @@ AFB III verlangt ein begründetes philosophisches Urteil, einen Vergleich oder e
 Erfinde keine Positionen, die im Ausschnitt nicht enthalten sind.`;
 
 app.post("/api/analyse",auth,async(req,res)=>{
+ const started=Date.now();
+ console.log(`[Analyse] Anfrage gestartet (${String(req.body?.text||"").length} Zeichen)`);
  try{
   const {key,n}=bucket(req);if(n>=DAILY_LIMIT)return res.status(429).json({error:"Das Tageslimit für diesen Zugang ist erreicht."});
   const text=String(req.body?.text||"").trim();if(!text)return res.status(400).json({error:"Kein Text eingegeben."});
   if(text.length>20000)return res.status(400).json({error:"Bitte einen kürzeren Textabschnitt verwenden (max. 20.000 Zeichen)."});
   const response=await openai.responses.create({model:MODEL,instructions,input:text,store:false,text:{format:{type:"json_schema",name:"philosophie_analyse",strict:true,schema}}});
-  usage.set(key,n+1);const data=JSON.parse(response.output_text);data._meta={remaining:Math.max(0,DAILY_LIMIT-(n+1))};res.json(data);
- }catch(e){console.error(e);res.status(500).json({error:"Die KI-Analyse konnte nicht abgeschlossen werden."})}
+  usage.set(key,n+1);
+  const data=JSON.parse(response.output_text);
+  data._meta={remaining:Math.max(0,DAILY_LIMIT-(n+1))};
+  console.log(`[Analyse] Erfolgreich nach ${Math.round((Date.now()-started)/1000)} s`);
+  res.json(data);
+ }catch(e){
+  console.error("[Analyse] Fehler:", e?.message || e);
+  res.status(500).json({error:`Die KI-Analyse konnte nicht abgeschlossen werden${e?.code ? " ("+e.code+")" : ""}.`})
+ }
 });
 app.listen(PORT,()=>console.log(`Textmikroskop läuft auf Port ${PORT}`));
