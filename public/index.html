@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Textmikroskop Philosophie</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#18202b;--muted:#657184;--line:#dfe5ee;--blue:#315fbd;--soft:#edf3ff;--green:#eaf7ef;--amber:#fff4d9;--rose:#fbeaf2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:auto;padding:24px 16px 60px}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1;margin:.2em 0}.lead{color:var(--muted);max-width:800px}
+.top,.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.modes{margin:15px 0}.mode{background:#fff;border:1px solid var(--line);color:var(--ink)}.mode.active{background:var(--blue);color:white}
+textarea{width:100%;min-height:270px;border:1px solid var(--line);border-radius:13px;padding:14px;font:inherit;resize:vertical}
+button{border:0;border-radius:11px;padding:10px 15px;font:inherit;font-weight:700;background:var(--blue);color:white;cursor:pointer}button.alt{background:#eef1f6;color:var(--ink)}
+button:disabled{opacity:.5}.status{color:var(--muted);margin-top:10px}.hidden{display:none}.head{font-size:1.1rem;font-weight:800;margin-bottom:10px}
+.item{padding:11px 13px;background:#f7f9fc;border-radius:11px;margin:8px 0}.simple{font-size:1.12rem;background:var(--soft);padding:16px;border-radius:13px}
+.example{background:var(--green)}.q1{background:var(--soft)}.q2{background:var(--amber)}.q3{background:var(--rose)}
+.badge{display:inline-block;font-size:.75rem;font-weight:800;padding:2px 7px;border-radius:999px;background:#fff;margin-right:6px}
+details{border-top:1px solid var(--line);margin-top:9px;padding-top:9px}summary{cursor:pointer;font-weight:700}.teacher-only{}
+.login{max-width:470px;margin:60px auto}.login input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;margin:8px 0}
+@media(max-width:650px){main{padding:14px 10px 40px}.top,.card{border-radius:14px;padding:14px}textarea{min-height:230px}}
+</style>
+</head>
+<body>
+<main>
+<section id="login" class="top login">
+<h1>Textmikroskop</h1><p class="lead">Geschützter Zugang zur Philosophie-Analyse.</p>
+<input id="password" type="password" placeholder="Zugangscode">
+<button id="loginBtn">Anmelden</button><div id="loginStatus" class="status"></div>
+</section>
+
+<div id="app" class="hidden">
+<h1>Philosophische Texte verstehen</h1>
+<p class="lead">Der Text wird Schritt für Schritt zerlegt. Ziel ist nicht nur eine Zusammenfassung, sondern das Verstehen des Gedankengangs.</p>
+<section class="top">
+<div class="row modes">
+<button class="mode active" data-mode="student">Schüleransicht</button>
+<button class="mode" data-mode="teacher">Lehreransicht</button>
+</div>
+<textarea id="text" placeholder="Philosophischen Originaltext hier einfügen …"></textarea>
+<div class="row" style="margin-top:10px">
+<button id="analyse">Mit KI analysieren</button><button id="kant" class="alt">Kant-Beispiel</button><button id="clear" class="alt">Leeren</button>
+</div><div id="status" class="status"></div>
+</section>
+<div id="results"></div>
+</div>
+</main>
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let mode="student";
+const kant=`Begehrungsvermögen ist das Vermögen, durch seine Vorstellungen Ursache der Gegenstände dieser Vorstellungen zu sein. Das Vermögen eines Wesens, seinen Vorstellungen gemäß zu handeln, heißt das Leben.
+Mit dem Begehren oder Verabscheuen ist erstlich jederzeit Lust oder Unlust, deren Empfänglichkeit man Gefühl nennt, verbunden, aber nicht immer umgekehrt. Denn es kann eine Lust geben, welche mit gar keinem Begehren des Gegenstandes, sondern mit der bloßen Vorstellung, die man sich von einem Gegenstande macht, schon verknüpft ist. Auch geht, zweitens, nicht immer die Lust oder Unlust an dem Gegenstande des Begehrens vor dem Begehren vorher und darf nicht allemal als Ursache, sondern kann auch als Wirkung desselben angesehen werden.`;
+
+function card(title,body,cls=""){return `<section class="card ${cls}"><div class="head">${title}</div>${body}</section>`}
+function render(d){
+ const terms=d.begriffe.map(x=>`<div class="item"><b>${esc(x.begriff)}</b><br>${esc(x.einfache_erklaerung)}${mode==="teacher"?`<br><small>${esc(x.funktion_im_text)}</small>`:""}</div>`).join("");
+ const units=d.sinneinheiten.map((x,i)=>`<div class="item"><b>${i+1}. ${esc(x.funktion)}</b><br>${esc(x.textaussage)}</div>`).join("");
+ const arg=d.argument.map(x=>`<div class="item"><b>${esc(x.typ)}:</b> ${esc(x.aussage)}</div>`).join("");
+ const qs=d.fragen.map(x=>`<div class="item q${x.afb==="I"?1:x.afb==="II"?2:3}"><span class="badge">AFB ${esc(x.afb)}</span>${esc(x.frage)}
+ ${mode==="teacher"?`<details><summary>Erwartung anzeigen</summary>${esc(x.erwartung)}</details>`:""}</div>`).join("");
+ $("#results").innerHTML=
+ card("1 · Problem",`<p>${esc(d.problem)}</p>`)+
+ card("2 · Begriffe",terms)+
+ card("3 · Gedankenschritte",units)+
+ card("4 · Beziehungen",d.beziehungen.map(x=>`<div class="item">${esc(x)}</div>`).join(""))+
+ card("5 · Argument",arg)+
+ card("6 · Einfach gesagt",`<div class="simple">${esc(d.einfach_gesagt)}</div><div class="item example"><b>Beispiel aus dem Alltag:</b><br>${esc(d.alltagsbeispiel)}</div><p><b>Merksatz:</b> ${esc(d.merksatz)}</p>`)+
+ card("7 · Selbst prüfen",qs);
+}
+async function login(){
+ $("#loginStatus").textContent="Prüfe Zugang …";
+ const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("#password").value})});
+ if(r.ok){$("#login").classList.add("hidden");$("#app").classList.remove("hidden");$("#status").textContent="Bereit."}
+ else $("#loginStatus").textContent="Zugangscode nicht korrekt.";
+}
+$("#loginBtn").onclick=login; $("#password").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll(".mode").forEach(x=>x.classList.toggle("active",x===b)); if(window.lastData)render(window.lastData)});
+$("#kant").onclick=()=>$("#text").value=kant; $("#clear").onclick=()=>{$("#text").value="";$("#results").innerHTML=""};
+$("#analyse").onclick=async()=>{
+ const text=$("#text").value.trim();if(!text){$("#status").textContent="Bitte zuerst einen Text einfügen.";return}
+ $("#analyse").disabled=true;$("#status").textContent="KI analysiert …";
+ try{
+  const r=await fetch("/api/analyse",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||"Analyse fehlgeschlagen");
+  window.lastData=d;render(d);$("#status").textContent=`Fertig. Heute noch ${d._meta?.remaining ?? "?"} Analysen in diesem Zugang verfügbar.`;
+ }catch(e){$("#status").textContent=e.message}finally{$("#analyse").disabled=false}
+};
+</script></body></html>
