@@ -83,11 +83,28 @@ document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{mode=b.dataset.mode
 $("#kant").onclick=()=>$("#text").value=kant; $("#clear").onclick=()=>{$("#text").value="";$("#results").innerHTML=""};
 $("#analyse").onclick=async()=>{
  const text=$("#text").value.trim();if(!text){$("#status").textContent="Bitte zuerst einen Text einfügen.";return}
- $("#analyse").disabled=true;$("#status").textContent="KI analysiert …";
+ $("#analyse").disabled=true;
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),180000);
+ const started=Date.now();
+ const ticker=setInterval(()=>{
+   const sec=Math.round((Date.now()-started)/1000);
+   $("#status").textContent=`KI analysiert … ${sec} s`;
+ },1000);
+ $("#status").textContent="KI analysiert … 0 s";
  try{
-  const r=await fetch("/api/analyse",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
-  const d=await r.json();if(!r.ok)throw new Error(d.error||"Analyse fehlgeschlagen");
+  const r=await fetch("/api/analyse",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text}),signal:controller.signal});
+  const raw=await r.text();
+  let d;
+  try{d=JSON.parse(raw)}catch{throw new Error("Der Server hat keine gültige Antwort geliefert.");}
+  if(!r.ok)throw new Error(d.error||`Analyse fehlgeschlagen (HTTP ${r.status})`);
   window.lastData=d;render(d);$("#status").textContent=`Fertig. Heute noch ${d._meta?.remaining ?? "?"} Analysen in diesem Zugang verfügbar.`;
- }catch(e){$("#status").textContent=e.message}finally{$("#analyse").disabled=false}
+ }catch(e){
+   $("#status").textContent=e.name==="AbortError"
+     ?"Die Analyse dauert länger als 3 Minuten und wurde abgebrochen. Bitte erneut versuchen oder einen kürzeren Text verwenden."
+     :`Fehler: ${e.message}`;
+ }finally{
+   clearTimeout(timeout);clearInterval(ticker);$("#analyse").disabled=false;
+ }
 };
 </script></body></html>
