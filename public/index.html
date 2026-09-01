@@ -1,110 +1,23 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Textmikroskop Philosophie</title>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Textmikroskop Philosophie · V3</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--ink:#18202b;--muted:#657184;--line:#dfe5ee;--blue:#315fbd;--soft:#edf3ff;--green:#eaf7ef;--amber:#fff4d9;--rose:#fbeaf2}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:1100px;margin:auto;padding:24px 16px 60px}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1;margin:.2em 0}.lead{color:var(--muted);max-width:800px}
-.top,.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.modes{margin:15px 0}.mode{background:#fff;border:1px solid var(--line);color:var(--ink)}.mode.active{background:var(--blue);color:white}
-textarea{width:100%;min-height:270px;border:1px solid var(--line);border-radius:13px;padding:14px;font:inherit;resize:vertical}
-button{border:0;border-radius:11px;padding:10px 15px;font:inherit;font-weight:700;background:var(--blue);color:white;cursor:pointer}button.alt{background:#eef1f6;color:var(--ink)}
-button:disabled{opacity:.5}.status{color:var(--muted);margin-top:10px}.hidden{display:none}.head{font-size:1.1rem;font-weight:800;margin-bottom:10px}
-.item{padding:11px 13px;background:#f7f9fc;border-radius:11px;margin:8px 0}.simple{font-size:1.12rem;background:var(--soft);padding:16px;border-radius:13px}
-.example{background:var(--green)}.q1{background:var(--soft)}.q2{background:var(--amber)}.q3{background:var(--rose)}
-.badge{display:inline-block;font-size:.75rem;font-weight:800;padding:2px 7px;border-radius:999px;background:#fff;margin-right:6px}
-details{border-top:1px solid var(--line);margin-top:9px;padding-top:9px}summary{cursor:pointer;font-weight:700}.teacher-only{}
-.login{max-width:470px;margin:60px auto}.login input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;margin:8px 0}
-@media(max-width:650px){main{padding:14px 10px 40px}.top,.card{border-radius:14px;padding:14px}textarea{min-height:230px}}
-</style>
-</head>
-<body>
-<main>
-<section id="login" class="top login">
-<h1>Textmikroskop</h1><p class="lead">Geschützter Zugang zur Philosophie-Analyse.</p>
-<input id="password" type="password" placeholder="Zugangscode">
-<button id="loginBtn">Anmelden</button><div id="loginStatus" class="status"></div>
-</section>
-
-<div id="app" class="hidden">
-<h1>Philosophische Texte verstehen</h1>
-<p class="lead">Der Text wird Schritt für Schritt zerlegt. Ziel ist nicht nur eine Zusammenfassung, sondern das Verstehen des Gedankengangs.</p>
-<section class="top">
-<div class="row modes">
-<button class="mode active" data-mode="student">Schüleransicht</button>
-<button class="mode" data-mode="teacher">Lehreransicht</button>
-</div>
-<textarea id="text" placeholder="Philosophischen Originaltext hier einfügen …"></textarea>
-<div class="row" style="margin-top:10px">
-<button id="analyse">Mit KI analysieren</button><button id="kant" class="alt">Kant-Beispiel</button><button id="clear" class="alt">Leeren</button>
-</div><div id="status" class="status"></div>
-</section>
-<div id="results"></div>
-</div>
-</main>
-<script>
-const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let mode="student";
-const kant=`Begehrungsvermögen ist das Vermögen, durch seine Vorstellungen Ursache der Gegenstände dieser Vorstellungen zu sein. Das Vermögen eines Wesens, seinen Vorstellungen gemäß zu handeln, heißt das Leben.
-Mit dem Begehren oder Verabscheuen ist erstlich jederzeit Lust oder Unlust, deren Empfänglichkeit man Gefühl nennt, verbunden, aber nicht immer umgekehrt. Denn es kann eine Lust geben, welche mit gar keinem Begehren des Gegenstandes, sondern mit der bloßen Vorstellung, die man sich von einem Gegenstande macht, schon verknüpft ist. Auch geht, zweitens, nicht immer die Lust oder Unlust an dem Gegenstande des Begehrens vor dem Begehren vorher und darf nicht allemal als Ursache, sondern kann auch als Wirkung desselben angesehen werden.`;
-
-function card(title,body,cls=""){return `<section class="card ${cls}"><div class="head">${title}</div>${body}</section>`}
-function render(d){
- const terms=d.begriffe.map(x=>`<div class="item"><b>${esc(x.begriff)}</b><br>${esc(x.einfache_erklaerung)}${mode==="teacher"?`<br><small>${esc(x.funktion_im_text)}</small>`:""}</div>`).join("");
- const units=d.sinneinheiten.map((x,i)=>`<div class="item"><b>${i+1}. ${esc(x.funktion)}</b><br>${esc(x.textaussage)}</div>`).join("");
- const arg=d.argument.map(x=>`<div class="item"><b>${esc(x.typ)}:</b> ${esc(x.aussage)}</div>`).join("");
- const qs=d.fragen.map(x=>`<div class="item q${x.afb==="I"?1:x.afb==="II"?2:3}"><span class="badge">AFB ${esc(x.afb)}</span>${esc(x.frage)}
- ${mode==="teacher"?`<details><summary>Erwartung anzeigen</summary>${esc(x.erwartung)}</details>`:""}</div>`).join("");
- $("#results").innerHTML=
- card("1 · Problem",`<p>${esc(d.problem)}</p>`)+
- card("2 · Begriffe",terms)+
- card("3 · Gedankenschritte",units)+
- card("4 · Beziehungen",d.beziehungen.map(x=>`<div class="item">${esc(x)}</div>`).join(""))+
- card("5 · Argument",arg)+
- card("6 · Den Gedanken verstehen",`
-    <div class="simple"><b>A · Ganz einfach gesagt</b><br><br>${esc(d.einfach_gesagt)}</div>
-    <div class="item example"><b>B · Stell dir vor …</b><br><br>${esc(d.alltagsbeispiel)}</div>
-    <div class="item"><b>C · Was hat das mit dem Text zu tun?</b><br><br>${(Array.isArray(d.beispiel_zuordnung)?d.beispiel_zuordnung:[]).map(x=>`<div style="margin-top:10px"><b>${esc(x.im_beispiel)}</b> → <b>${esc(x.im_text)}</b><br>${esc(x.erklaerung)}</div>`).join("") || "Für diese Analyse liegt noch keine ausdrückliche Zuordnung vor."}</div>
-    <div class="item"><b>D · Wo hinkt das Beispiel?</b><br><br>${esc(d.grenze_des_beispiels || "Das Beispiel vereinfacht den Gedanken und bildet nicht alle Einzelheiten des Textes ab.")}</div>
-    <div class="item"><b>E · Jetzt noch einmal philosophisch</b><br><br>${esc(d.philosophisch_genauer || d.einfach_gesagt)}</div>
-    <p><b>Merksatz:</b> ${esc(d.merksatz)}</p>`)+
-  card("7 · Selbst prüfen",qs);
-}
-async function login(){
- $("#loginStatus").textContent="Prüfe Zugang …";
- const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("#password").value})});
- if(r.ok){$("#login").classList.add("hidden");$("#app").classList.remove("hidden");$("#status").textContent="Bereit."}
- else $("#loginStatus").textContent="Zugangscode nicht korrekt.";
-}
-$("#loginBtn").onclick=login; $("#password").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
-document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll(".mode").forEach(x=>x.classList.toggle("active",x===b)); if(window.lastData)render(window.lastData)});
-$("#kant").onclick=()=>$("#text").value=kant; $("#clear").onclick=()=>{$("#text").value="";$("#results").innerHTML=""};
-$("#analyse").onclick=async()=>{
- const text=$("#text").value.trim();if(!text){$("#status").textContent="Bitte zuerst einen Text einfügen.";return}
- $("#analyse").disabled=true;
- const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),180000);
- const started=Date.now();
- const ticker=setInterval(()=>{
-   const sec=Math.round((Date.now()-started)/1000);
-   $("#status").textContent=`KI analysiert … ${sec} s`;
- },1000);
- $("#status").textContent="KI analysiert … 0 s";
- try{
-  const r=await fetch("/api/analyse",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text}),signal:controller.signal});
-  const raw=await r.text();
-  let d;
-  try{d=JSON.parse(raw)}catch{throw new Error("Der Server hat keine gültige Antwort geliefert.");}
-  if(!r.ok)throw new Error(d.error||`Analyse fehlgeschlagen (HTTP ${r.status})`);
-  window.lastData=d;render(d);$("#status").textContent=`Fertig. Heute noch ${d._meta?.remaining ?? "?"} Analysen in diesem Zugang verfügbar.`;
- }catch(e){
-   $("#status").textContent=e.name==="AbortError"
-     ?"Die Analyse dauert länger als 3 Minuten und wurde abgebrochen. Bitte erneut versuchen oder einen kürzeren Text verwenden."
-     :`Fehler: ${e.message}`;
- }finally{
-   clearTimeout(timeout);clearInterval(ticker);$("#analyse").disabled=false;
- }
-};
+:root{--bg:#f5f7fb;--card:#fff;--ink:#18202b;--muted:#657184;--line:#dfe5ee;--blue:#315fbd;--soft:#edf3ff;--green:#eaf7ef;--amber:#fff4d9;--rose:#fbeaf2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:1100px;margin:auto;padding:24px 16px 60px}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1;margin:.2em 0}.lead{color:var(--muted);max-width:850px}.top,.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.modes{margin:15px 0}.mode{background:#fff;border:1px solid var(--line);color:var(--ink)}.mode.active{background:var(--blue);color:white}textarea{width:100%;min-height:270px;border:1px solid var(--line);border-radius:13px;padding:14px;font:inherit;resize:vertical}button{border:0;border-radius:11px;padding:10px 15px;font:inherit;font-weight:700;background:var(--blue);color:white;cursor:pointer}button.alt{background:#eef1f6;color:var(--ink)}button.reveal{margin-top:10px;background:#eef1f6;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.5}.status{color:var(--muted);margin-top:10px}.hidden{display:none}.head{font-size:1.12rem;font-weight:800;margin-bottom:10px}.item{padding:11px 13px;background:#f7f9fc;border-radius:11px;margin:8px 0}.simple{font-size:1.08rem;background:var(--soft);padding:16px;border-radius:13px}.example{background:var(--green)}.task{border-left:4px solid var(--blue);background:var(--soft);padding:14px;border-radius:10px;margin:12px 0}.solution{margin-top:12px}.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}.q1{background:var(--soft)}.q2{background:var(--amber)}.q3{background:var(--rose)}.badge{display:inline-block;font-size:.75rem;font-weight:800;padding:2px 7px;border-radius:999px;background:#fff;margin-right:6px}details{border-top:1px solid var(--line);margin-top:9px;padding-top:9px}summary{cursor:pointer;font-weight:700}.login{max-width:470px;margin:60px auto}.login input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;margin:8px 0}.stepnote{color:var(--muted);font-size:.94rem}.quote{border-left:3px solid var(--line);padding-left:10px;margin:8px 0;color:#39465a}@media(max-width:650px){main{padding:14px 10px 40px}.top,.card{border-radius:14px;padding:14px}textarea{min-height:230px}}
+</style></head><body><main>
+<section id="login" class="top login"><h1>Textmikroskop</h1><p class="lead">Geschützter Zugang zur Philosophie-Analyse.</p><input id="password" type="password" placeholder="Zugangscode"><button id="loginBtn">Anmelden</button><div id="loginStatus" class="status"></div></section>
+<div id="app" class="hidden"><h1>Philosophische Texte verstehen</h1><p class="lead">V3 führt dich vom ersten Zugang zurück in den Originaltext: erst selbst untersuchen, dann mit der Lösung vergleichen.</p><section class="top"><div class="row modes"><button class="mode active" data-mode="student">Schüleransicht</button><button class="mode" data-mode="teacher">Lehreransicht</button></div><textarea id="text" placeholder="Philosophischen Originaltext hier einfügen …"></textarea><div class="row" style="margin-top:10px"><button id="analyse">Mit KI analysieren</button><button id="kant" class="alt">Kant-Beispiel</button><button id="clear" class="alt">Leeren</button></div><div id="status" class="status"></div></section><div id="results"></div></div>
+</main><script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));let mode="student";
+const kant=`Begehrungsvermögen ist das Vermögen, durch seine Vorstellungen Ursache der Gegenstände dieser Vorstellungen zu sein. Das Vermögen eines Wesens, seinen Vorstellungen gemäß zu handeln, heißt das Leben.\nMit dem Begehren oder Verabscheuen ist erstlich jederzeit Lust oder Unlust, deren Empfänglichkeit man Gefühl nennt, verbunden, aber nicht immer umgekehrt. Denn es kann eine Lust geben, welche mit gar keinem Begehren des Gegenstandes, sondern mit der bloßen Vorstellung, die man sich von einem Gegenstande macht, schon verknüpft ist. Auch geht, zweitens, nicht immer die Lust oder Unlust an dem Gegenstande des Begehrens vor dem Begehren vorher und darf nicht allemal als Ursache, sondern kann auch als Wirkung desselben angesehen werden.`;
+function card(title,body){return `<section class="card"><div class="head">${title}</div>${body}</section>`}function reveal(id){const el=document.getElementById(id);el.classList.remove("hidden");document.querySelector(`[data-target="${id}"]`)?.classList.add("hidden")}
+function render(d){const z=d.zugang||{},syn=d.synthese||{};const gloss=(d.glossar||[]).map(x=>`<div class="item"><b>${esc(x.begriff)}</b><br>${esc(x.einfach)}<br><small>${esc(x.im_text)}</small></div>`).join("");const units=(d.gedankenschritte||[]).map(x=>`<div class="item"><b>${esc(x.nr)} · ${esc(x.funktion)}</b><div class="quote">${esc(x.textstelle)}</div>${esc(x.erklaerung)}</div>`).join("");const con=(d.konnektoren||[]).map(x=>`<div class="item"><b>${esc(x.ausdruck)}</b> → ${esc(x.beziehung)}<br>${esc(x.erklaerung)}</div>`).join("");const arg=(d.argumentationslogik||[]).map((x,i)=>`<div class="item"><b>${esc(x.rolle)}</b>${i<(d.argumentationslogik||[]).length-1?" →":""}<br>${esc(x.aussage)}</div>`).join("");const map=(z.zuordnung||[]).map(x=>`<div style="margin-top:9px"><b>${esc(x.im_beispiel)}</b> → <b>${esc(x.im_text)}</b><br>${esc(x.erklaerung)}</div>`).join("");const qs=(d.fragen||[]).map(x=>`<div class="item q${x.afb==="I"?1:x.afb==="II"?2:3}"><span class="badge">AFB ${esc(x.afb)}</span>${esc(x.frage)}${mode==="teacher"?`<details><summary>Erwartung anzeigen</summary>${esc(x.erwartung)}</details>`:""}</div>`).join("");
+$("#results").innerHTML=
+card("1 · Welches Problem steckt im Text?",`<p>${esc(d.problem)}</p>`)+
+card("2 · Erster Zugang zum Gedanken",`<div class="simple"><b>Ganz einfach gesagt</b><br><br>${esc(z.einfach)}</div><div class="item example"><b>Stell dir vor …</b><br><br>${esc(z.beispiel)}</div><details><summary>Was hat das Beispiel mit dem Text zu tun?</summary>${map}</details><details><summary>Wo hinkt das Beispiel?</summary>${esc(z.grenze)}</details>`)+
+card("3 · Zurück zum Original: Gedankenschritte finden",`<div class="task"><b>Deine Aufgabe:</b> Lies den Originaltext noch einmal. Markiere, wo jeweils ein neuer Gedanke beginnt. Gib jedem Abschnitt eine kurze Funktion, z. B. Definition, Begründung, Unterscheidung oder Folgerung.</div><button class="reveal" data-target="solution-units" onclick="reveal('solution-units')">Lösung anzeigen</button><div id="solution-units" class="solution hidden">${units}</div>`)+
+card("4 · Logische Verbindungen entdecken",`<div class="task"><b>Deine Aufgabe:</b> Suche Konnektoren wie „weil“, „aber“, „wenn … dann“, „also“ oder „daher“. Welche logische Beziehung stellen sie her? Prüfe auch, ob Beziehungen nur mitgedacht sind.</div><button class="reveal" data-target="solution-con" onclick="reveal('solution-con')">Lösung anzeigen</button><div id="solution-con" class="solution hidden">${con}</div>`)+
+card("5 · Argumentationslogik rekonstruieren",`<p class="stepnote">Jetzt werden die einzelnen Schritte zu einem Argumentationsgang zusammengesetzt.</p>${arg}`)+
+card("Glossar · Hilfe beim Originaltext",`<p class="stepnote">Das Glossar ist ein Hilfsmittel. Nutze es, wenn ein Begriff den Zugang zum Originaltext erschwert.</p><div class="glossary">${gloss}</div>`)+
+card("6 · Was sagt der Text insgesamt?",`<div class="item"><b>Problem</b><br>${esc(syn.problem)}</div><div class="item"><b>Antwort des Autors</b><br>${esc(syn.antwort)}</div><div class="item"><b>Argumentationsweg</b><br>${esc(syn.argumentationsweg)}</div><div class="item"><b>Philosophisch präzise</b><br>${esc(syn.philosophisch)}</div><div class="simple"><b>In einfacher Sprache</b><br><br>${esc(syn.einfach)}</div><p><b>Merksatz:</b> ${esc(syn.merksatz)}</p>`)+
+card("7 · Selbst prüfen",qs)}
+async function login(){$("#loginStatus").textContent="Prüfe Zugang …";const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("#password").value})});if(r.ok){$("#login").classList.add("hidden");$("#app").classList.remove("hidden");$("#status").textContent="Bereit."}else $("#loginStatus").textContent="Zugangscode nicht korrekt."}$("#loginBtn").onclick=login;$("#password").addEventListener("keydown",e=>{if(e.key==="Enter")login()});document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll(".mode").forEach(x=>x.classList.toggle("active",x===b));if(window.lastData)render(window.lastData)});$("#kant").onclick=()=>$("#text").value=kant;$("#clear").onclick=()=>{$("#text").value="";$("#results").innerHTML=""};
+$("#analyse").onclick=async()=>{const text=$("#text").value.trim();if(!text){$("#status").textContent="Bitte zuerst einen Text einfügen.";return}$("#analyse").disabled=true;const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),180000),started=Date.now(),ticker=setInterval(()=>{$("#status").textContent=`KI analysiert … ${Math.round((Date.now()-started)/1000)} s`},1000);$("#status").textContent="KI analysiert … 0 s";try{const r=await fetch("/api/analyse",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text}),signal:controller.signal});const raw=await r.text();let d;try{d=JSON.parse(raw)}catch{throw new Error("Der Server hat keine gültige Antwort geliefert.")}if(!r.ok)throw new Error(d.error||`Analyse fehlgeschlagen (HTTP ${r.status})`);window.lastData=d;render(d);$("#status").textContent=`V3 fertig. Heute noch ${d._meta?.remaining??"?"} Analysen verfügbar.`}catch(e){$("#status").textContent=e.name==="AbortError"?"Die Analyse dauert länger als 3 Minuten und wurde abgebrochen.":`Fehler: ${e.message}`}finally{clearTimeout(timeout);clearInterval(ticker);$("#analyse").disabled=false}};
 </script></body></html>
