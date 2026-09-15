@@ -15,7 +15,7 @@ function cookies(req){return Object.fromEntries((req.headers.cookie||"").split("
 function authed(req){const c=cookies(req),v=c.phil_session;if(!v)return false;const [exp,sig]=v.split(".");return Number(exp)>Date.now()&&crypto.timingSafeEqual(Buffer.from(sig||""),Buffer.from(sign(exp)))}
 function auth(req,res,next){if(!authed(req))return res.status(401).json({error:"Bitte neu anmelden."});next()}
 function bucket(req){const day=new Date().toISOString().slice(0,10),key=`${day}:${req.ip}`;return {key,n:usage.get(key)||0}}
-app.post("/api/login",(req,res)=>{if(String(req.body?.password||"")!==ACCESS_PASSWORD)return res.status(401).json({ok:false});const exp=String(Date.now()+12*60*60*1000),token=`${exp}.${sign(exp)}`;res.setHeader("Set-Cookie",`phil_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200${process.env.NODE_ENV==="production"?"; Secure":""}`);res.json({ok:true})});
+app.post("/api/login",(req,res)=>{if(String(req.body?.password||"")!==ACCESS_PASSWORD)return res.status(401).json({ok:false});const exp=String(Date.now()+12*60*60*1000),token=`${exp}.${sign(exp)}`;res.setHeader("Set-Cookie",`phil_session=${encodeURIComponent(token)}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=43200`);res.json({ok:true})});
 
 const schema={type:"object",additionalProperties:false,properties:{
  problem:{type:"string"},
